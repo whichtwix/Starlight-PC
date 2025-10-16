@@ -39,7 +39,8 @@ pub fn run() {
             commands::paths::get_among_us_paths,
             commands::init::init_app,
             commands::init::get_among_us_path_from_store,
-            commands::init::update_among_us_path
+            commands::init::update_among_us_path,
+            commands::profiles::create_profile
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -74,7 +74,7 @@
 								v-if="modsFolderLoading"
 								class="mb-3 p-3 bg-blue-500/20 border border-blue-500/40 rounded-lg text-white/90"
 							>
-								Detecting your Among Us installation...
+								Preparing the active profile mods directory...
 							</div>
 							<div
 								v-else-if="modsFolderError"
@@ -86,7 +86,8 @@
 								v-else-if="modsFolder"
 								class="mb-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-white/80"
 							>
-								Mods will be installed to <span class="font-semibold">{{ modsFolder }}</span>.
+								Mods will be installed to <span class="font-semibold">{{ modsFolder }}</span>
+								<span v-if="activeProfile" class="text-white/60">(profile: {{ activeProfile.name }})</span>.
 							</div>
 
 							<div v-if="versionsLoading" class="flex justify-center p-4">
@@ -202,8 +203,8 @@
 </template>
 
 <script setup lang="ts">
-	import type { Mod, ModVersion } from "~/types";
-	import { invoke } from "@tauri-apps/api/core";
+	import type { Mod, ModVersion, ProfileEntry } from "~/types";
+	import { useApp } from "~/composables/useApp";
 
 	interface DownloadStatus {
 		type: "info" | "success" | "error"
@@ -215,6 +216,26 @@
 	const modId = String((route.params as { id?: string }).id || "");
 
 	const config = useRuntimeConfig();
+	const { initApp, storeData } = useApp();
+
+	const profilesFromStore = computed<ProfileEntry[]>(() => {
+		const raw = storeData.value?.profiles;
+		return Array.isArray(raw) ? raw as ProfileEntry[] : [];
+	});
+
+	const activeProfileId = computed<string | null>(() => {
+		const value = storeData.value?.active_profile;
+		return typeof value === "string" && value.trim().length > 0 ? value : null;
+	});
+
+	const activeProfile = computed<ProfileEntry | null>(() => {
+		const id = activeProfileId.value;
+		if (!id) {
+			return null;
+		}
+
+		return profilesFromStore.value.find((profile) => profile.id === id) ?? null;
+	});
 
 	const formatTimeAgo = (dateInput: string | number | Date | undefined | null) => {
 		if (dateInput === undefined || dateInput === null) {
@@ -278,7 +299,7 @@
 
 	const modsFolder = ref<string | null>(null);
 	const modsFolderError = ref<string | null>(null);
-	const modsFolderLoading = ref(false);
+	const modsFolderLoading = ref(true);
 
 	const sanitizePathSegment = (segment: string) => segment.replace(/^[\\/]+|[\\/]+$/g, "");
 
@@ -294,27 +315,35 @@
 		return joinPath(installationPath, "BepInEx", "plugins");
 	};
 
-	const loadModsFolder = async () => {
+	const loadModsFolder = () => {
 		modsFolderLoading.value = true;
 		modsFolderError.value = null;
 
-		try {
-			const paths = await invoke<string[]>("get_among_us_paths");
-			const firstValid = (paths ?? []).find((value) => typeof value === "string" && value.trim().length > 0);
+		const profile = activeProfile.value;
 
-			if (firstValid) {
-				modsFolder.value = resolveModsFolderPath(firstValid.trim());
-			} else {
-				modsFolder.value = null;
-				modsFolderError.value = "Among Us installation not found.";
-			}
-		} catch (err) {
+		if (!profile) {
 			modsFolder.value = null;
-			modsFolderError.value = err instanceof Error ? err.message : "Failed to detect Among Us installation.";
-		} finally {
+			modsFolderError.value = "Select or create an active profile to install mods.";
 			modsFolderLoading.value = false;
+			return;
 		}
+
+		const profilePath = typeof profile.path === "string" ? profile.path.trim() : "";
+
+		if (!profilePath) {
+			modsFolder.value = null;
+			modsFolderError.value = "Active profile path is missing.";
+			modsFolderLoading.value = false;
+			return;
+		}
+
+		modsFolder.value = resolveModsFolderPath(profilePath);
+		modsFolderLoading.value = false;
 	};
+
+	watch(activeProfile, () => {
+		loadModsFolder();
+	});
 
 	const normalizeTimestamp = (value: ModVersion["created_at"]) => {
 		if (value === undefined || value === null) {
@@ -389,10 +418,11 @@
 		}
 	};
 
-	onMounted(() => {
+	onMounted(async () => {
+		await initApp();
+		loadModsFolder();
 		// Only fetch on client to avoid SSR issues with window/crypto APIs
 		fetchVersions();
-		loadModsFolder();
 	});
 
 	const sortedVersions = computed<ModVersion[]>(() => {
@@ -418,8 +448,8 @@
 		if (!modsFolder.value) {
 			downloadStatus.value = {
 				type: "error",
-				message: "Among Us installation not found",
-				details: modsFolderError.value ?? "Please launch the Among Us desktop app at least once."
+				message: "Active profile unavailable",
+				details: modsFolderError.value ?? "Select or create an active profile before installing mods."
 			};
 			return;
 		}
