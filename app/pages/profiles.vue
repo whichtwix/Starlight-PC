@@ -65,6 +65,15 @@
 								<p class="text-xs text-white/60">
 									Created {{ formatTimestamp(profile.created_at) }}
 								</p>
+								<UButton
+									label="Launch with this profile"
+									color="primary"
+									size="sm"
+									class="mt-2"
+									:loading="launchingProfileId === profile.id"
+									:disabled="launchingProfileId === profile.id"
+									@click="handleLaunch(profile)"
+								/>
 							</div>
 							<span
 								v-if="profile.id === activeProfileId"
@@ -89,11 +98,12 @@
 		message: string
 	}
 
-	const { initApp, storeData, createProfile } = useApp();
+	const { initApp, storeData, createProfile, launchGame } = useApp();
 
 	const newProfileName = ref("");
 	const isSubmitting = ref(false);
 	const feedback = ref<Feedback | null>(null);
+	const launchingProfileId = ref<string | null>(null);
 
 	onMounted(async () => {
 		await initApp();
@@ -101,6 +111,25 @@
 
 	const profiles = computed<ProfileEntry[]>(() => (storeData.value.profiles ?? []) as ProfileEntry[]);
 	const activeProfileId = computed(() => storeData.value.active_profile as string | null);
+
+	const handleLaunch = async (profile: ProfileEntry) => {
+		launchingProfileId.value = profile.id;
+		try {
+			await launchGame(profile.id);
+			feedback.value = {
+				kind: "success",
+				message: `Launching Among Us with "${profile.name}"...`
+			};
+		} catch (error) {
+			const message = typeof error === "string" ? error : error instanceof Error ? error.message : "Failed to launch Among Us.";
+			feedback.value = {
+				kind: "error",
+				message
+			};
+		} finally {
+			launchingProfileId.value = null;
+		}
+	};
 
 	const handleCreate = async () => {
 		const name = newProfileName.value.trim();

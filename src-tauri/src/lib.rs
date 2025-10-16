@@ -40,7 +40,8 @@ pub fn run() {
             commands::init::init_app,
             commands::init::get_among_us_path_from_store,
             commands::init::update_among_us_path,
-            commands::profiles::create_profile
+            commands::profiles::create_profile,
+            commands::launch::launch_among_us
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -58,12 +58,17 @@ export const useApp = () => {
 		return profile;
 	};
 
+	const launchGame = async (profileId?: string) => {
+		await invoke("launch_among_us", { profile_id: profileId ?? null });
+	};
+
 	return {
 		storeData,
 		initApp,
 		getAmongUsPath,
 		updateAmongUsPath,
 		createProfile,
-		refreshStoreData
+		refreshStoreData,
+		launchGame
 	};
 };
