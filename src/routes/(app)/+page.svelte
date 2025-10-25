@@ -3,6 +3,7 @@
     import { fetchNews, type NewsItem } from "$lib/queries";
     import * as Card from "$lib/components/ui/card";
     import * as Carousel from "$lib/components/ui/carousel";
+    import { Skeleton } from "$lib/components/ui/skeleton";
     import { marked } from "marked";
     import Prose from "$lib/components/Prose.svelte";
     import { StarlightIcon } from "$lib/components/icons";
@@ -28,11 +29,46 @@
         </div>
 
         {#if newsQuery.isLoading}
-            <p class="text-gray-500">Loading news...</p>
+            <Carousel.Root
+                opts={{
+                    align: "start",
+                }}
+                class="w-full maw-w-sm"
+            >
+                <Carousel.Content>
+                    {#each Array(3) as _, i (i)}
+                        <Carousel.Item class="md:basis-1/2 lg:basis-1/3">
+                            <Card.Root class="flex flex-col h-96">
+                                <Card.Content
+                                    class="flex-1 overflow-hidden space-y-3 pt-6"
+                                >
+                                    <Skeleton class="h-6 w-3/4" />
+                                    <Skeleton class="h-4 w-full" />
+                                    <Skeleton class="h-4 w-full" />
+                                    <Skeleton class="h-4 w-5/6" />
+                                    <Skeleton class="h-4 w-full" />
+                                    <Skeleton class="h-4 w-4/5" />
+                                </Card.Content>
+                                <Card.Footer
+                                    class="text-xs flex items-end justify-between border-t border-border"
+                                >
+                                    <div class="flex flex-col gap-2 flex-1">
+                                        <Skeleton class="h-4 w-32" />
+                                        <Skeleton class="h-3 w-24" />
+                                    </div>
+                                    <Skeleton class="h-3 w-20" />
+                                </Card.Footer>
+                            </Card.Root>
+                        </Carousel.Item>
+                    {/each}
+                </Carousel.Content>
+            </Carousel.Root>
         {:else if newsQuery.isError}
-            <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p class="text-red-600 font-semibold">Error loading news</p>
-                <p class="text-red-500 text-sm mt-1">
+            <div
+                class="p-4 bg-error-background border border-error-border rounded-lg"
+            >
+                <p class="text-error font-semibold">Error loading news</p>
+                <p class="text-error-foreground text-sm mt-1">
                     {newsQuery.error?.message}
                 </p>
             </div>
