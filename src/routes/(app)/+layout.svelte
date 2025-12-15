@@ -3,6 +3,7 @@
     import { Button } from "$lib/components/ui/button";
     import { AutoBreadcrumb } from "$lib/components/ui/breadcrumb";
     import { TitlebarButtons } from "$lib/components/ui/titlebar-buttons";
+    import { browser } from "$app/environment";
     import { setContext } from "svelte";
     import type { Snippet } from "svelte";
     import {
@@ -41,6 +42,9 @@
             sidebarContent = content;
         },
     });
+
+    const isTauri =
+        browser && typeof (window as any).__TAURI_INTERNALS__ !== "undefined";
 </script>
 
 <div class="app-grid-layout relative overflow-hidden">
@@ -89,13 +93,15 @@
                 maxItems={4}
             />
         </div>
-        <section
-            data-tauri-drag-region
-            class="ml-auto flex items-center relative z-10"
-        >
-            <div class="flex mr-3"></div>
-            <TitlebarButtons />
-        </section>
+        {#if isTauri}
+            <section
+                data-tauri-drag-region
+                class="ml-auto flex items-center relative z-10"
+            >
+                <div class="flex mr-3"></div>
+                <TitlebarButtons />
+            </section>
+        {/if}
     </div>
 
     <!-- Left Navigation Bar -->
