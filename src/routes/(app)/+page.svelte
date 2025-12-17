@@ -3,11 +3,17 @@
   import { newsQueries, modQueries } from "$lib/queries";
   import * as Card from "$lib/components/ui/card";
   import * as Carousel from "$lib/components/ui/carousel";
-  import { AspectRatio } from "$lib/components/ui/aspect-ratio";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { marked } from "marked";
   import Prose from "$lib/components/Prose.svelte";
-  import { Clock, Download, User, Calendar, ArrowRight } from "@lucide/svelte";
+  import {
+    Clock,
+    Download,
+    User,
+    Calendar,
+    ArrowRight,
+    ImageOff,
+  } from "@lucide/svelte";
 
   const newsQuery = createQuery(newsQueries.all);
   const trendingModsQuery = createQuery(modQueries.trending);
@@ -92,7 +98,7 @@
 
   <!-- Trending Mods Section -->
   <section>
-    <div class="flex items-center justify-between mb-6 px-10">
+    <div class="flex items-center justify-between mb-4 px-10">
       <div>
         <h2 class="text-2xl font-bold tracking-tight">Trending Mods</h2>
         <p class="text-muted-foreground text-sm">
@@ -102,117 +108,92 @@
     </div>
 
     {#if trendingModsQuery.isLoading}
-      <Carousel.Root
-        opts={{
-          align: "start",
-        }}
-        class="w-full maw-w-sm px-10"
-      >
+      <Carousel.Root opts={{ align: "start" }} class="w-full px-10">
         <Carousel.Content class="-ml-2">
-          {#each Array(3) as _, i (i)}
-            <Carousel.Item class="md:basis-1/2 lg:basis-1/3">
-              <Card.Root class="overflow-hidden">
+          {#each Array(3) as _}
+            <Carousel.Item class="basis-full lg:basis-1/2 xl:basis-1/3">
+              <Card.Root class="p-0 overflow-hidden">
                 <div class="flex h-40">
-                  <!-- Thumbnail skeleton -->
-                  <div class="w-40 h-40 shrink-0">
-                    <Skeleton class="w-full h-full" />
-                  </div>
-
-                  <!-- Content skeleton -->
-                  <div class="flex-1 p-4 flex flex-col justify-between min-w-0">
+                  <Skeleton class="w-40 h-40 shrink-0 rounded-none" />
+                  <div class="flex-1 p-3 space-y-3">
                     <div class="space-y-1">
                       <Skeleton class="h-5 w-3/4" />
                       <Skeleton class="h-4 w-1/2" />
                     </div>
-
-                    <div class="space-y-2">
-                      <div class="flex items-center gap-2">
-                        <Skeleton class="h-4 w-4 shrink-0" />
-                        <Skeleton class="h-4 w-24" />
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <Skeleton class="h-4 w-4 shrink-0" />
-                        <Skeleton class="h-4 w-20" />
-                      </div>
+                    <div class="space-y-1">
+                      <Skeleton class="h-4 w-full" />
+                      <Skeleton class="h-4 w-full" />
+                      <Skeleton class="h-4 w-2/3" />
                     </div>
+                    <Skeleton class="h-4 w-1/3 mt-auto" />
                   </div>
                 </div>
               </Card.Root>
             </Carousel.Item>
           {/each}
         </Carousel.Content>
-        <Carousel.Previous class="-left-2" />
-        <Carousel.Next class="-right-2" />
       </Carousel.Root>
     {:else if trendingModsQuery.isError}
       <div
-        class="p-4 bg-error-background border border-error-border rounded-lg"
+        class="mx-10 p-4 bg-destructive/10 border border-destructive/20 rounded-md"
       >
-        <p class="text-error font-semibold">Error loading trending mods</p>
-        <p class="text-error-foreground text-sm mt-1">
-          {trendingModsQuery.error?.message}
-        </p>
+        <p class="text-destructive font-semibold text-sm">Error loading mods</p>
       </div>
     {:else if trendingModsQuery.isSuccess && trendingModsQuery.data}
-      <Carousel.Root
-        opts={{
-          align: "start",
-        }}
-        class="w-full maw-w-sm px-10"
-      >
+      <Carousel.Root opts={{ align: "start" }} class="w-full px-10">
         <Carousel.Content class="-ml-2">
           {#each trendingModsQuery.data as mod (mod.id)}
-            <Carousel.Item class="md:basis-1/2 lg:basis-1/3">
-              <Card.Root class="overflow-hidden">
+            <Carousel.Item class="basis-full lg:basis-1/2 xl:basis-1/3">
+              <Card.Root
+                class="p-0 overflow-hidden hover:bg-accent/50 transition-colors"
+              >
                 <div class="flex h-40">
-                  <!-- Thumbnail on the left - Square aspect ratio -->
-                  <div class="w-40 h-40 shrink-0">
+                  <div class="w-40 h-40 shrink-0 bg-muted">
                     {#if mod._links.thumbnail}
-                      <AspectRatio ratio={1} class="bg-muted">
-                        <img
-                          src={mod._links.thumbnail}
-                          alt={mod.name}
-                          class="rounded-md object-cover"
-                        />
-                      </AspectRatio>
+                      <img
+                        src={mod._links.thumbnail}
+                        alt={mod.name}
+                        class="h-full w-full object-cover"
+                      />
                     {:else}
                       <div
-                        class="h-full w-full bg-muted flex items-center justify-center"
+                        class="h-full w-full flex items-center justify-center"
                       >
-                        <span class="text-muted-foreground text-sm"
-                          >No image</span
-                        >
+                        <ImageOff class="h-10 w-10 text-muted-foreground/40" />
                       </div>
                     {/if}
                   </div>
 
-                  <!-- Data on the right -->
-                  <div class="flex-1 p-4 flex flex-col justify-between min-w-0">
-                    <div class="space-y-1">
+                  <!-- Content Area -->
+                  <div class="flex-1 p-3 flex flex-col min-w-0">
+                    <div class="min-w-0 flex-1">
                       <h3
-                        class="font-semibold text-lg leading-tight truncate"
+                        class="font-bold text-base leading-tight truncate mb-0.5"
                         title={mod.name}
                       >
                         {mod.name}
                       </h3>
-                      <p
-                        class="text-sm text-muted-foreground truncate"
-                        title={mod.author}
-                      >
+                      <p class="text-sm text-muted-foreground/80 truncate mb-2">
                         by {mod.author}
+                      </p>
+                      <p
+                        class="text-sm text-muted-foreground line-clamp-3 leading-snug"
+                      >
+                        {mod.description}
                       </p>
                     </div>
 
-                    <div class="space-y-2 text-sm text-muted-foreground">
-                      <div class="flex items-center gap-2">
-                        <Download class="h-4 w-4 shrink-0" />
-                        <span
-                          >{mod.downloads.toLocaleString()}
-                          downloads</span
-                        >
+                    <div
+                      class="flex items-center gap-4 text-sm font-medium pt-2"
+                    >
+                      <div class="flex items-center gap-1.5">
+                        <Download class="h-4 w-4 text-primary" />
+                        <span>{mod.downloads.toLocaleString()}</span>
                       </div>
-                      <div class="flex items-center gap-2">
-                        <Clock class="h-4 w-4 shrink-0" />
+                      <div
+                        class="flex items-center gap-1.5 text-muted-foreground"
+                      >
+                        <Clock class="h-4 w-4" />
                         <span
                           >{new Date(mod.created_at).toLocaleDateString()}</span
                         >
