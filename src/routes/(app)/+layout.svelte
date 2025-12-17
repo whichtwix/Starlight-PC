@@ -140,7 +140,7 @@
     </div>
     <div
       id="background-teleport-target"
-      class="absolute h-full -z-10 rounded-tl-[var(--radius-xl)] overflow-hidden"
+      class="absolute h-full -z-10 rounded-tl-xl overflow-hidden"
       style="width: calc(100% - var(--right-bar-width));"
     ></div>
     {@render children?.()}

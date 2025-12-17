@@ -7,93 +7,78 @@
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { marked } from "marked";
   import Prose from "$lib/components/Prose.svelte";
-  import { Clock, Download } from "@lucide/svelte";
+  import { Clock, Download, User, Calendar, ArrowRight } from "@lucide/svelte";
 
   const newsQuery = createQuery(newsQueries.all);
   const trendingModsQuery = createQuery(modQueries.trending);
 </script>
 
-<div class="p-8 overflow-y-auto h-full scrollbar-styled">
+<div class="p-8 overflow-y-auto h-full scrollbar-styled space-y-12">
   <!-- News Section -->
-  <div class="mb-8">
-    <div class="flex items-center justify-between mb-4 px-10">
-      <h2 class="text-xl font-semibold flex items-center gap-2">News</h2>
+  <section>
+    <div class="mb-6 px-10">
+      <h2 class="text-2xl font-bold tracking-tight">Latest News</h2>
+      <p class="text-sm text-muted-foreground">
+        Updates from the development team.
+      </p>
     </div>
 
     {#if newsQuery.isLoading}
-      <Carousel.Root
-        opts={{
-          align: "start",
-        }}
-        class="w-full maw-w-sm px-10"
-      >
-        <Carousel.Content class="-ml-2">
-          {#each Array(3) as _, i (i)}
-            <Carousel.Item class="md:basis-1/2 lg:basis-1/3">
-              <Card.Root class="flex flex-col h-96">
-                <Card.Content class="flex-1 overflow-hidden space-y-3">
-                  <Skeleton class="h-6 w-3/4" />
-                  <Skeleton class="h-4 w-full" />
-                  <Skeleton class="h-4 w-full" />
-                  <Skeleton class="h-4 w-5/6" />
-                  <Skeleton class="h-4 w-full" />
-                  <Skeleton class="h-4 w-4/5" />
-                </Card.Content>
-                <Card.Footer
-                  class="text-xs flex items-end justify-between border-t border-border"
-                >
-                  <div class="flex flex-col gap-0.5">
-                    <Skeleton class="h-4 w-32" />
-                    <Skeleton class="h-3 w-24" />
-                  </div>
-                  <Skeleton class="h-3 w-20" />
-                </Card.Footer>
-              </Card.Root>
-            </Carousel.Item>
-          {/each}
-        </Carousel.Content>
-        <Carousel.Previous class="-left-2" />
-        <Carousel.Next class="-right-2" />
-      </Carousel.Root>
-    {:else if newsQuery.isError}
-      <div
-        class="p-4 bg-error-background border border-error-border rounded-lg"
-      >
-        <p class="text-error font-semibold">Error loading news</p>
-        <p class="text-error-foreground text-sm mt-1">
-          {newsQuery.error?.message}
-        </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-10">
+        {#each Array(3) as _}
+          <Skeleton class="h-72 w-full rounded-xl" />
+        {/each}
       </div>
-    {:else if newsQuery.isSuccess && newsQuery.data}
-      <Carousel.Root
-        opts={{
-          align: "start",
-        }}
-        class="w-full maw-w-sm px-10"
-      >
-        <Carousel.Content class="-ml-2">
-          {#each newsQuery.data as newsItem: NewsItem (newsItem.id)}
-            <Carousel.Item class="md:basis-1/2 lg:basis-1/3">
-              <Card.Root class="flex flex-col h-96">
-                <Card.Content
-                  class="flex-1 overflow-hidden hover:overflow-y-auto scrollbar-styled"
-                >
-                  <Prose content={marked(newsItem.content)} />
+    {:else if newsQuery.isSuccess}
+      <Carousel.Root opts={{ align: "start" }} class="w-full px-10">
+        <Carousel.Content class="-ml-4">
+          {#each newsQuery.data as newsItem (newsItem.id)}
+            <Carousel.Item class="pl-4 md:basis-1/2 lg:basis-1/3">
+              <Card.Root
+                class="group flex flex-col h-72 transition-all hover:border-primary/50 hover:shadow-lg"
+              >
+                <Card.Header class="pb-3">
+                  <div
+                    class="flex items-center justify-between mb-2 text-xs text-muted-foreground"
+                  >
+                    <div class="flex items-center gap-1.5">
+                      <User class="w-3.5 h-3.5" />
+                      <span class="font-medium text-foreground/80"
+                        >{newsItem.author}</span
+                      >
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <Calendar class="w-3.5 h-3.5" />
+                      {new Date(newsItem.updated_at).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <Card.Title
+                    class="text-lg leading-snug group-hover:text-primary transition-colors"
+                  >
+                    {newsItem.title}
+                  </Card.Title>
+                </Card.Header>
+
+                <Card.Content class="flex-1 overflow-hidden relative px-6 py-0">
+                  <div class="prose-sm text-muted-foreground">
+                    <Prose content={marked(newsItem.content)} />
+                  </div>
+
+                  <div
+                    class="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-card to-transparent pointer-events-none"
+                  ></div>
                 </Card.Content>
-                <Card.Footer
-                  class="text-xs flex items-end justify-between border-t border-border"
-                >
-                  <div class="flex flex-col gap-0.5">
-                    <div class="font-semibold text-sm text-card-foreground">
-                      {newsItem.title}
-                    </div>
-                    <div class="text-muted-foreground">
-                      {newsItem.author}
-                    </div>
-                  </div>
-                  <div class="text-muted-foreground">
-                    {new Date(newsItem.updated_at).toLocaleDateString()}
-                  </div>
+
+                <Card.Footer class="pt-2 pb-4">
+                  <button
+                    class="text-sm font-semibold text-primary hover:underline flex items-center gap-1 group/btn"
+                  >
+                    Read full story
+                    <ArrowRight
+                      class="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1"
+                    />
+                  </button>
                 </Card.Footer>
               </Card.Root>
             </Carousel.Item>
@@ -103,14 +88,17 @@
         <Carousel.Next class="-right-2" />
       </Carousel.Root>
     {/if}
-  </div>
+  </section>
 
   <!-- Trending Mods Section -->
-  <div class="mb-8">
-    <div class="flex items-center justify-between mb-4 px-10">
-      <h2 class="text-xl font-semibold flex items-center gap-2">
-        Trending Mods
-      </h2>
+  <section>
+    <div class="flex items-center justify-between mb-6 px-10">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight">Trending Mods</h2>
+        <p class="text-muted-foreground text-sm">
+          Most popular community creations this week.
+        </p>
+      </div>
     </div>
 
     {#if trendingModsQuery.isLoading}
@@ -240,5 +228,5 @@
         <Carousel.Next class="-right-2" />
       </Carousel.Root>
     {/if}
-  </div>
+  </section>
 </div>
