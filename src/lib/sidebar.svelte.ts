@@ -1,8 +1,8 @@
-import { getContext, onMount } from "svelte";
-import type { Snippet } from "svelte";
+import { getContext, onMount } from 'svelte';
+import type { Snippet } from 'svelte';
 
 interface SidebarContext {
-    setContent: (content: Snippet | null) => void;
+	setContent: (content: Snippet | null) => void;
 }
 
 /**
@@ -28,18 +28,20 @@ interface SidebarContext {
  * ```
  */
 export function useSidebar(content: Snippet | null) {
-    const sidebar = getContext<SidebarContext>("sidebar");
+	const sidebar = getContext<SidebarContext>('sidebar');
 
-    if (!sidebar) {
-        console.warn("useSidebar: sidebar context not found. Make sure you're using this within a layout that provides the sidebar context.");
-        return;
-    }
+	if (!sidebar) {
+		console.warn(
+			"useSidebar: sidebar context not found. Make sure you're using this within a layout that provides the sidebar context."
+		);
+		return;
+	}
 
-    onMount(() => {
-        sidebar.setContent(content);
+	onMount(() => {
+		sidebar.setContent(content);
 
-        return () => {
-            sidebar.setContent(null);
-        };
-    });
+		return () => {
+			sidebar.setContent(null);
+		};
+	});
 }

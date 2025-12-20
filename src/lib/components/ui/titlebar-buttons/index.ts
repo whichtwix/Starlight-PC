@@ -1,1 +1,1 @@
-export { default as TitlebarButtons } from "./TitlebarButtons.svelte";
+export { default as TitlebarButtons } from './TitlebarButtons.svelte';
