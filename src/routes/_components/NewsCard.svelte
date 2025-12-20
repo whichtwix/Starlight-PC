@@ -44,7 +44,7 @@
 		<div
 			class="group/btn flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
 		>
-			Read full story
+			Read full post
 			<ArrowRight />
 		</div>
 	</Card.Footer>
