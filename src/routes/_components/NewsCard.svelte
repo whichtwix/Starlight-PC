@@ -10,9 +10,9 @@
 
 <Card.Root
 	{onclick}
-	class="group flex h-72 cursor-pointer flex-col transition-all hover:border-primary/50 hover:shadow-lg {isSelected
+	class="group flex h-72 cursor-pointer flex-col transition-all hover:shadow-lg {isSelected
 		? 'border-primary ring-1 ring-primary'
-		: ''}"
+		: 'hover:border-primary/50'}"
 >
 	<Card.Header class="pb-3">
 		<div class="mb-2 flex items-center justify-between text-xs text-muted-foreground">
@@ -40,7 +40,7 @@
 		></div>
 	</Card.Content>
 
-	<Card.Footer class="pt-2 pb-4">
+	<Card.Footer class="pt-2">
 		<div
 			class="group/btn flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
 		>
