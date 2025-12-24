@@ -122,9 +122,6 @@
 						<Carousel.Item class="basis-full pl-2 @4xl:basis-1/2 @7xl:basis-1/3">
 							<ModCard {mod} />
 						</Carousel.Item>
-						<Carousel.Item class="basis-full pl-2 @4xl:basis-1/2 @7xl:basis-1/3">
-							<ModCardSkeleton />
-						</Carousel.Item>
 					{/each}
 				</Carousel.Content>
 				<Carousel.Previous class="-left-2" />

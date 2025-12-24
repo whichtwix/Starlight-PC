@@ -10,6 +10,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Search, ArrowUpDown, X } from '@lucide/svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import ModCardSkeleton from '$lib/features/mods/components/ModCardSkeleton.svelte';
 
 	// --- State ---
 	let searchInput = $state('');
@@ -135,17 +136,7 @@
 		<main class="grid grid-cols-1 gap-4 xl:grid-cols-2">
 			{#if showSkeletons}
 				{#each skeletons, i (i)}
-					<div class="flex h-40 gap-4 overflow-hidden rounded-2xl border bg-card shadow-sm">
-						<Skeleton class="h-full w-40 rounded-none" />
-						<div class="flex flex-1 flex-col space-y-3 p-4">
-							<Skeleton class="h-6 w-3/4" />
-							<Skeleton class="h-4 w-1/2" />
-							<div class="space-y-2 pt-2">
-								<Skeleton class="h-3 w-full" />
-								<Skeleton class="h-3 w-full" />
-							</div>
-						</div>
-					</div>
+					<ModCardSkeleton />
 				{/each}
 			{:else if displayedMods.length === 0}
 				<div
