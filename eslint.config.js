@@ -9,11 +9,9 @@ import ts from 'typescript-eslint';
 import svelteConfig from './svelte.config.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
-const tauriGitignore = fileURLToPath(new URL('./src-tauri/.gitignore', import.meta.url));
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
-	includeIgnoreFile(tauriGitignore),
 	js.configs.recommended,
 	...ts.configs.recommended,
 	...svelte.configs.recommended,
