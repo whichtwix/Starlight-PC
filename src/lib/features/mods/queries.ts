@@ -21,13 +21,17 @@ export const modQueries = {
 			staleTime: STALE.short
 		}),
 
-	explore: (search: string) => {
+	explore: (search: string, limit: number, offset: number) => {
 		const trimmed = search.trim();
+		const params = `limit=${limit}&offset=${offset}`;
+
 		return queryOptions({
-			queryKey: ['mods', 'explore', trimmed] as const,
+			queryKey: ['mods', 'explore', trimmed, limit, offset] as const,
 			queryFn: () =>
 				apiFetch(
-					trimmed ? `/api/v2/mods/search?q=${encodeURIComponent(trimmed)}` : '/api/v2/mods',
+					trimmed
+						? `/api/v2/mods/search?q=${encodeURIComponent(trimmed)}&${params}`
+						: `/api/v2/mods?${params}`,
 					ModArrayValidator
 				),
 			staleTime: STALE.short

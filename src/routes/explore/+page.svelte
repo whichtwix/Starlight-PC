@@ -1,18 +1,16 @@
 <script lang="ts">
 	import { modQueries } from '$lib/features/mods/queries';
-	import { modRegistry } from '$lib/features/mods/registry.svelte';
-	import { createQuery } from '@tanstack/svelte-query';
+	import { createQuery, keepPreviousData } from '@tanstack/svelte-query';
 	import ModCard from '$lib/features/mods/components/ModCard.svelte';
-
+	import ModCardSkeleton from '$lib/features/mods/components/ModCardSkeleton.svelte';
 	import { Input } from '$lib/components/ui/input';
 	import * as NativeSelect from '$lib/components/ui/native-select';
-	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Button } from '$lib/components/ui/button';
-	import { Search, ArrowUpDown, X } from '@lucide/svelte';
-	import { SvelteMap } from 'svelte/reactivity';
-	import ModCardSkeleton from '$lib/features/mods/components/ModCardSkeleton.svelte';
+	import { Search, ArrowUpDown, X, ChevronLeft, ChevronRight } from '@lucide/svelte';
 
 	// --- State ---
+	const ITEMS_PER_PAGE = 12;
+	let page = $state(0);
 	let searchInput = $state('');
 	let debouncedSearch = $state('');
 	let sortBy = $state<SortKey>('downloads');
@@ -20,21 +18,21 @@
 	// --- Debounce ---
 	$effect(() => {
 		const value = searchInput;
-		const timer = setTimeout(() => (debouncedSearch = value), 300);
+		const timer = setTimeout(() => {
+			if (debouncedSearch !== value) {
+				debouncedSearch = value;
+				page = 0;
+			}
+		}, 100);
 		return () => clearTimeout(timer);
 	});
 
 	// --- Queries ---
 	const totalCountQuery = createQuery(() => modQueries.total());
 	const modsQuery = createQuery(() => ({
-		...modQueries.explore(debouncedSearch),
-		placeholderData: (prev) => prev
+		...modQueries.explore(debouncedSearch, ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
+		placeholderData: keepPreviousData
 	}));
-
-	// Sync to registry
-	$effect(() => {
-		if (modsQuery.data) modRegistry.addMany(modsQuery.data);
-	});
 
 	// --- Sort ---
 	type Mod = NonNullable<typeof modsQuery.data>[number];
@@ -55,30 +53,21 @@
 	};
 
 	// --- Derived ---
-	const displayedMods = $derived.by(() => {
-		const query = debouncedSearch.trim().toLowerCase();
-
-		// Merge registry + fresh query data
-		const merged = new SvelteMap(modRegistry.all.map((m) => [m.id, m]));
-		modsQuery.data?.forEach((m) => merged.set(m.id, m));
-
-		let mods = Array.from(merged.values());
-
-		if (query) {
-			mods = mods.filter(
-				(m) => m.name.toLowerCase().includes(query) || m.author.toLowerCase().includes(query)
-			);
-		}
-
-		return mods.sort(sortFns[sortBy]);
-	});
-
-	const showSkeletons = $derived(modsQuery.isPending && modRegistry.size === 0);
-	const skeletons = Array.from({ length: 6 });
+	const displayedMods = $derived(modsQuery.data ? [...modsQuery.data].sort(sortFns[sortBy]) : []);
+	const isSearching = $derived(debouncedSearch.trim().length > 0);
+	const totalPages = $derived(
+		isSearching ? null : Math.ceil((totalCountQuery.data ?? 0) / ITEMS_PER_PAGE)
+	);
+	const hasNextPage = $derived(
+		isSearching
+			? (modsQuery.data?.length ?? 0) === ITEMS_PER_PAGE
+			: totalPages !== null && page < totalPages - 1
+	);
+	const showPagination = $derived(page > 0 || hasNextPage);
 	const searchPlaceholder = $derived(
-		totalCountQuery.data === undefined
-			? 'Search mods...'
-			: `Search ${totalCountQuery.data.toLocaleString()} mods...`
+		totalCountQuery.data
+			? `Search ${totalCountQuery.data.toLocaleString()} mods...`
+			: 'Search mods...'
 	);
 </script>
 
@@ -86,47 +75,37 @@
 	<div class="mx-auto flex max-w-7xl flex-col gap-8 p-6 @lg:p-10">
 		<header class="flex flex-col gap-6 @lg:flex-row @lg:items-center @lg:justify-between">
 			<div class="space-y-1.5">
-				<div class="flex items-baseline gap-3">
-					<h1 class="text-4xl font-black tracking-tight">Explore</h1>
-				</div>
+				<h1 class="text-4xl font-black tracking-tight">Explore</h1>
 				<p class="text-sm text-muted-foreground">Discover and manage mods for Among Us.</p>
 			</div>
 
-			<div class="flex items-center gap-3 self-end @lg:self-center">
+			<div class="flex items-center gap-3">
 				<div class="relative max-w-xs">
 					<Search
-						class="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground/70
-               {modsQuery.isFetching ? 'animate-pulse' : ''}"
+						class="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground/70"
 					/>
 					<Input
 						placeholder={searchPlaceholder}
 						bind:value={searchInput}
-						class="h-10 w-full rounded-full border-muted-foreground/10 bg-muted/50 pr-10 pl-10 transition-colors focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/20"
+						class="h-10 w-full rounded-full border-muted-foreground/10 bg-muted/50 pr-10 pl-10"
 					/>
 					{#if searchInput}
 						<button
-							type="button"
 							onclick={() => (searchInput = '')}
-							class="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+							class="absolute top-1/2 right-3 -translate-y-1/2"
 						>
 							<X class="size-3.5" />
 						</button>
 					{/if}
 				</div>
 
-				<div class="relative w-48 shrink-0 @md:w-60">
+				<div class="relative w-48">
 					<ArrowUpDown
-						class="pointer-events-none absolute top-1/2 left-3.5 size-3.5 -translate-y-1/2 text-muted-foreground/70"
+						class="absolute top-1/2 left-3.5 size-3.5 -translate-y-1/2 text-muted-foreground/70"
 					/>
-
-					<NativeSelect.Root
-						bind:value={sortBy}
-						class="h-10 w-full rounded-full border-muted-foreground/10 bg-muted/50 pr-8 pl-10 text-xs font-semibold tracking-wider uppercase transition-colors focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/20"
-					>
-						{#each sortOptions as option (option.value)}
-							<NativeSelect.Option value={option.value}>
-								{option.label}
-							</NativeSelect.Option>
+					<NativeSelect.Root bind:value={sortBy} class="h-10 w-full rounded-full pl-10">
+						{#each sortOptions as opt (opt.value)}
+							<NativeSelect.Option value={opt.value}>{opt.label}</NativeSelect.Option>
 						{/each}
 					</NativeSelect.Root>
 				</div>
@@ -134,32 +113,42 @@
 		</header>
 
 		<main class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-			{#if showSkeletons}
-				{#each skeletons, i (i)}
+			{#if modsQuery.isPending && !modsQuery.data}
+				{#each { length: 6 }, i (i)}
 					<ModCardSkeleton />
 				{/each}
 			{:else if displayedMods.length === 0}
-				<div
-					class="col-span-full flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-muted-foreground/10 bg-muted/5 py-32 text-center"
-				>
-					<div class="mb-4 flex size-20 items-center justify-center rounded-full bg-muted">
-						<Search class="size-10 text-muted-foreground/40" />
-					</div>
-					<h3 class="text-xl font-bold">No mods found</h3>
-					<p class="mb-6 max-w-xs text-sm text-muted-foreground">
-						We couldn't find any mods matching "{debouncedSearch}". Try a different term.
-					</p>
-					<Button variant="outline" class="rounded-full px-8" onclick={() => (searchInput = '')}>
-						Clear search
-					</Button>
+				<div class="col-span-full py-32 text-center">
+					<h3 class="mb-5 text-xl font-bold">No mods found</h3>
+					<Button variant="outline" onclick={() => (searchInput = '')}>Clear search</Button>
 				</div>
 			{:else}
 				{#each displayedMods as mod (mod.id)}
-					<a href="/mods/{mod.id}" class="transition-transform active:scale-[0.98]">
+					<a href="/mods/{mod.id}">
 						<ModCard {mod} />
 					</a>
 				{/each}
 			{/if}
 		</main>
+
+		{#if showPagination}
+			<footer class="flex items-center justify-center gap-4 py-8">
+				<Button variant="outline" size="icon" disabled={page === 0} onclick={() => page--}>
+					<ChevronLeft class="size-4" />
+				</Button>
+
+				<span class="text-sm font-medium">
+					{#if totalPages}
+						Page {page + 1} of {totalPages}
+					{:else}
+						Page {page + 1}
+					{/if}
+				</span>
+
+				<Button variant="outline" size="icon" disabled={!hasNextPage} onclick={() => page++}>
+					<ChevronRight class="size-4" />
+				</Button>
+			</footer>
+		{/if}
 	</div>
 </div>

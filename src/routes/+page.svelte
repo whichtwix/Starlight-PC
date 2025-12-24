@@ -37,8 +37,6 @@
 		selectedPost = null;
 		sidebar.close();
 	}
-
-	const skeletons = Array.from({ length: 3 });
 </script>
 
 {#snippet NewsDetailSidebar()}
@@ -58,7 +56,7 @@
 		{#if newsQuery.isLoading}
 			<Carousel.Root opts={{ align: 'start' }} class="w-full px-10">
 				<Carousel.Content class="-ml-4">
-					{#each skeletons, i (i)}
+					{#each { length: 6 }, i (i)}
 						<Carousel.Item class="pl-4 @lg:basis-1/2 @2xl:basis-1/3">
 							<NewsCardSkeleton />
 						</Carousel.Item>
@@ -102,7 +100,7 @@
 		{#if trendingModsQuery.isLoading}
 			<Carousel.Root opts={{ align: 'start' }} class="w-full px-10">
 				<Carousel.Content class="-ml-2">
-					{#each skeletons, i (i)}
+					{#each { length: 6 }, i (i)}
 						<Carousel.Item class="basis-full pl-2 @4xl:basis-1/2 @7xl:basis-1/3">
 							<ModCardSkeleton />
 						</Carousel.Item>
