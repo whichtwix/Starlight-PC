@@ -10,7 +10,7 @@
 	<div class="flex h-40">
 		<div class="h-40 w-40 flex-none shrink-0 bg-muted">
 			{#if mod._links.thumbnail}
-				<img src={mod._links.thumbnail} alt={mod.name} class="h-full w-full object-cover" />
+				<img src={mod._links.thumbnail} alt={mod.name} class="h-full w-full object-contain" />
 			{:else}
 				<div class="flex h-full w-full items-center justify-center">
 					<ImageOff class="h-10 w-10 text-muted-foreground/40" />
