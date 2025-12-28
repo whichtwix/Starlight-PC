@@ -9,6 +9,8 @@
 	import { modInstallService } from '../mod-install-service';
 	import { profileService } from '../profile-service';
 
+	const queryClient = useQueryClient();
+
 	let { modId }: { modId: string } = $props();
 
 	let open = $state(false);
