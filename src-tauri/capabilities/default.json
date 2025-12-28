@@ -26,6 +26,35 @@
 		"core:webview:allow-set-webview-zoom",
 		"store:default",
 		"fs:default",
-		"os:default"
+		"os:default",
+		"fs:allow-mkdir",
+		"fs:allow-remove",
+		"fs:allow-write",
+		"fs:allow-appdata-write-recursive",
+		{
+			"identifier": "fs:scope",
+			"allow": [
+				{
+					"path": "$APPDATA/**"
+				}
+			]
+		},
+		{
+			"identifier": "fs:allow-exists",
+			"allow": [
+				{
+					"path": "**/**"
+				}
+			]
+		},
+		{
+			"identifier": "http:default",
+			"allow": [
+				{
+					"url": "https://builds.bepinex.dev/*"
+				}
+			]
+		},
+		"opener:default"
 	]
 }
