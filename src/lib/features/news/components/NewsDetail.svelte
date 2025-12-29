@@ -2,10 +2,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import Prose from '$lib/components/shared/Prose.svelte';
 	import { marked } from 'marked';
-	import { X, Maximize, Minimize } from '@jis3r/icons'; // Added Icons
+	import { X, Maximize, Minimize } from '@jis3r/icons';
 	import { User, Calendar } from '@lucide/svelte';
 	import type { Post } from '$lib/features/news/schema';
-	import { getSidebar } from '$lib/state/sidebar.svelte'; // Import helper
+	import { getSidebar } from '$lib/state/sidebar.svelte';
 
 	interface Props {
 		post: Post;
@@ -13,7 +13,7 @@
 	}
 
 	let { post, onclose }: Props = $props();
-	const sidebar = getSidebar(); // Access the state
+	const sidebar = getSidebar();
 	const renderedContent = $derived(marked.parse(post.content));
 </script>
 
