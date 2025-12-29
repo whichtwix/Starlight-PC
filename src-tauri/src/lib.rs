@@ -1,5 +1,5 @@
 mod commands;
-use tauri::{WebviewUrl, WebviewWindowBuilder};
+use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -43,6 +43,8 @@ pub fn run() {
 
             let _window = win_builder.build().unwrap();
 
+            commands::game_state::start_game_monitor(app.handle().clone());
+
             // macOS specific background styling
             #[cfg(target_os = "macos")]
             {
@@ -65,7 +67,8 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::profiles_backend::check_among_us_running,
+            commands::game_state::get_game_running,
+            commands::game_state::stop_monitor,
             commands::launch::launch_modded,
             commands::launch::launch_vanilla
         ])

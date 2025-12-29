@@ -17,9 +17,6 @@ class LaunchService {
 			throw new Error('Among Us.exe not found at configured path');
 		}
 
-		const isRunning = await invoke<boolean>('check_among_us_running');
-		if (isRunning) throw new Error('Among Us is already running');
-
 		const bepinexDll = await join(profile.path, 'BepInEx', 'core', 'BepInEx.Unity.IL2CPP.dll');
 		const bepinexExists = await exists(bepinexDll);
 		if (!bepinexExists) {
@@ -65,7 +62,7 @@ class LaunchService {
 		}
 
 		try {
-			await invoke('launch_vanilla', { game_exe: gameExePath });
+			await invoke('launch_vanilla', { gameExe: gameExePath });
 		} catch (error) {
 			throw new Error(error instanceof Error ? error.message : 'Failed to launch Among Us process');
 		}

@@ -21,10 +21,11 @@
 	const sidebar = setSidebar();
 	let dialogRef = $state({ open: () => {} });
 
+	type TauriWindow = Awaited<ReturnType<typeof getCurrentWindow>>;
+
 	// Detect platform for layout adjustments
 	let platformName = $state<'macos' | 'windows' | 'linux' | 'other'>('other');
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let appWindow = $state<any>(null);
+	let appWindow = $state<TauriWindow | null>(null);
 
 	if (browser && (window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__) {
 		try {
@@ -50,8 +51,14 @@
 
 	const activeProfileQuery = createQuery(() => profileQueries.active());
 	const activeProfile = $derived((activeProfileQuery.data ?? null) as Profile | null);
+	const gameRunningQuery = createQuery(() => profileQueries.gameRunning());
+	const gameRunning = $derived(gameRunningQuery.data ?? false);
 
 	async function handleLaunchLastUsed() {
+		if (gameRunning) {
+			showToastError(new Error('Among Us is already running'));
+			return;
+		}
 		if (!activeProfile) return;
 		try {
 			await launchService.launchProfile(activeProfile);
@@ -105,11 +112,18 @@
 					data-tauri-drag-region-exclude
 					size="sm"
 					variant="ghost"
+					disabled={gameRunning}
 					onclick={handleLaunchLastUsed}
 					class="gap-2"
 				>
 					<Play class="h-4 w-4 fill-current" />
 					<span class="hidden sm:inline">Launch {activeProfile.name}</span>
+					{#if gameRunning}
+						<div class="relative h-2 w-2">
+							<span class="absolute inset-0 animate-ping rounded-full bg-green-500 opacity-75"
+							></span>
+						</div>
+					{/if}
 				</Button>
 			{/if}
 			{#if platformName === 'windows'}

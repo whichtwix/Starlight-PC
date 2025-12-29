@@ -5,6 +5,8 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import AppShell from '$lib/components/layout/AppShell.svelte';
+	import { initGameState } from '$lib/features/profiles/game-state-service.svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	const queryClient = new QueryClient({
 		defaultOptions: {
@@ -16,6 +18,19 @@
 		}
 	});
 	let { children } = $props();
+
+	let cleanup: (() => Promise<void>) | null = null;
+
+	onMount(async () => {
+		const gameState = await initGameState();
+		cleanup = async () => {
+			await gameState.destroy();
+		};
+	});
+
+	onDestroy(async () => {
+		await cleanup?.();
+	});
 </script>
 
 <ModeWatcher />
