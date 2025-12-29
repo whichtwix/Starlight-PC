@@ -36,6 +36,9 @@ fn start_process_monitor<R: Runtime>(app: AppHandle<R>) {
                         let _ = app.emit("game-state-changed", GameStatePayload { running: false });
                         break;
                     }
+                        let _ = app.emit("game-state-changed", GameStatePayload { running: false });
+                        break;
+                    }
                     Ok(None) => {
                         // Still running
                     }
