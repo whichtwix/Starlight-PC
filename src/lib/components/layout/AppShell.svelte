@@ -212,7 +212,7 @@
 			{sidebar.isOpen ? 'grid-cols-[1fr_var(--right-bar-width)]' : 'grid-cols-[1fr_0px]'}"
 		ontransitionend={handleTransitionEnd}
 	>
-		<div class="relative h-full grow overflow-hidden">
+		<div class="scrollbar-styled relative h-full grow overflow-y-auto">
 			<div
 				id="background-teleport-target"
 				class="absolute -z-10 h-full w-[calc(100%-var(--right-bar-width))] overflow-hidden rounded-tl-xl"
@@ -222,10 +222,10 @@
 
 		<!-- Right Sidebar -->
 		<div
-			class="app-sidebar relative mt-px flex shrink-0 flex-col overflow-visible border-l border-border bg-muted"
+			class="app-sidebar relative mt-px flex shrink-0 flex-col overflow-hidden border-l border-border bg-muted"
 			style="width: var(--right-bar-width);"
 		>
-			<div class="relative grow overflow-y-auto pb-12">
+			<div class="scrollbar-styled relative grow overflow-y-auto">
 				{#if sidebar.content}
 					{@render sidebar.content()}
 				{/if}
