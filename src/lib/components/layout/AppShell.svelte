@@ -76,7 +76,7 @@
 
 <div
 	class="app-shell relative isolate grid h-screen auto-rows-[auto_1fr] grid-cols-[auto_1fr] overflow-hidden bg-card
-		[--left-bar-width:4rem] [--right-bar-width:300px] [--top-bar-height:3rem]
+		[--left-bar-width:4rem] [--right-bar-width:400px] [--top-bar-height:3rem]
 		[grid-template-areas:'status_status'_'nav_dummy']"
 >
 	<!-- Star background -->
