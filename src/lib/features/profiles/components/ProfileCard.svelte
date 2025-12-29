@@ -12,8 +12,7 @@
 		Package,
 		EllipsisVertical,
 		Download,
-		Clock,
-		AlertTriangle
+		Loader2
 	} from '@lucide/svelte';
 	import { revealItemInDir } from '@tauri-apps/plugin-opener';
 	import { createQuery } from '@tanstack/svelte-query';
@@ -21,6 +20,7 @@
 	import type { Profile, ProfileMod } from '../schema';
 	import type { Mod } from '$lib/features/mods/schema';
 	import { join } from '@tauri-apps/api/path';
+	import { gameState } from '../game-state-service.svelte';
 
 	let {
 		profile,
@@ -65,11 +65,7 @@
 		profile.last_launched_at ? new Date(profile.last_launched_at).toLocaleDateString() : 'Never'
 	);
 
-	const isRecentlyLaunched = $derived(
-		profile.last_launched_at !== undefined && Date.now() - profile.last_launched_at < 5 * 60 * 1000
-	);
-
-	const cardClass = $derived(isRecentlyLaunched ? 'ring-2 ring-primary bg-primary/5' : '');
+	const isRunning = $derived(gameState.running);
 
 	const modIds = $derived(profile.mods.map((m) => m.mod_id));
 	const modsQueries = $derived(modIds.map((id) => createQuery(() => modQueries.byId(id))));
@@ -88,31 +84,35 @@
 	const hasMoreMods = $derived(profile.mods.length > 3);
 </script>
 
-<Card.Root class="overflow-hidden transition-all hover:bg-accent/50 {cardClass}">
+<Card.Root
+	class="overflow-hidden transition-all hover:bg-accent/50 {isRunning
+		? 'bg-green-500/5 ring-2 ring-green-500/50'
+		: ''}"
+>
 	<Card.Content class="p-4">
-		<div class="flex items-start justify-between gap-4">
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 			<div class="flex min-w-0 flex-1 flex-col gap-2">
-				<div class="flex items-center gap-2">
+				<div class="flex flex-wrap items-center gap-2">
 					<h3 class="truncate text-lg font-bold" title={profile.name}>{profile.name}</h3>
 					{#if profile.bepinex_installed === false}
 						<div
 							class="flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400"
-							title="BepInEx is being installed in the background"
+							title="BepInEx is being installed in background"
 						>
 							<Download class="h-3 w-3 animate-pulse" />
 							<span>Installing...</span>
 						</div>
 					{/if}
-					{#if isRecentlyLaunched}
+					{#if isRunning}
 						<div
-							class="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+							class="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
 						>
-							<Clock class="h-3 w-3" />
-							<span>Just launched</span>
+							<Loader2 class="h-3 w-3 animate-spin" />
+							<span>Running</span>
 						</div>
 					{/if}
 				</div>
-				<div class="flex items-center gap-4 text-sm text-muted-foreground">
+				<div class="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
 					<div class="flex items-center gap-1.5">
 						<Package class="h-4 w-4" />
 						<span>{profile.mods.length} mods</span>
@@ -155,15 +155,20 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-2 sm:flex-row">
 				<Button
 					size="sm"
 					onclick={onlaunch}
-					disabled={profile.bepinex_installed === false}
-					class={isRecentlyLaunched ? 'bg-primary hover:bg-primary/90' : ''}
+					disabled={profile.bepinex_installed === false || isRunning}
+					class={isRunning ? 'bg-green-600 hover:bg-green-700' : ''}
 				>
-					<Play class="mr-2 h-4 w-4 fill-current" />
-					Launch
+					{#if isRunning}
+						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+						Running
+					{:else}
+						<Play class="mr-2 h-4 w-4 fill-current" />
+						Launch
+					{/if}
 				</Button>
 
 				<DropdownMenu.Root>
@@ -176,7 +181,10 @@
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content align="end">
 						<DropdownMenu.Group>
-							<DropdownMenu.Item onclick={onlaunch} disabled={profile.bepinex_installed === false}>
+							<DropdownMenu.Item
+								onclick={onlaunch}
+								disabled={profile.bepinex_installed === false || isRunning}
+							>
 								<Play class="mr-2 h-4 w-4" />
 								<span>Launch</span>
 							</DropdownMenu.Item>
@@ -238,10 +246,10 @@
 		</Dialog.Header>
 
 		<div class="flex items-start gap-3 rounded-lg bg-muted p-3 text-sm">
-			<AlertTriangle class="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+			<Trash2 class="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
 			<p class="text-muted-foreground">
-				This action will delete mod file from the profile. You can reinstall it later from the
-				Explore page.
+				This action will delete mod file from profile. You can reinstall it later from the Explore
+				page.
 			</p>
 		</div>
 
