@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "Starlight"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "log",
  "once_cell",
