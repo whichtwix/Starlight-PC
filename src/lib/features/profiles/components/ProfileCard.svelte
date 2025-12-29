@@ -136,15 +136,6 @@
 							Installing
 						</Badge>
 					{/if}
-					{#if isRunning}
-						<Badge
-							variant="outline"
-							class="gap-1.5 border-green-500/50 text-green-600 dark:text-green-400"
-						>
-							<LoaderCircle class="size-3 animate-spin" />
-							Running
-						</Badge>
-					{/if}
 				</div>
 				<Card.Description class="flex flex-wrap items-center gap-x-3 gap-y-1">
 					<span class="inline-flex items-center gap-1.5">
