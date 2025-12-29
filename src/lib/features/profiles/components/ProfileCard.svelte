@@ -166,7 +166,7 @@
 					{/if}
 				</Button>
 
-				<Button size="sm" onclick={() => goto('/explore')}>
+				<Button size="sm" onclick={() => goto('/explore')} aria-label="Install mods">
 					<Plus class="size-4"/>
 				</Button>
 
