@@ -1,5 +1,5 @@
 mod commands;
-use tauri::{TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+use tauri::{WebviewUrl, WebviewWindowBuilder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -30,6 +30,7 @@ pub fn run() {
             // macOS: Keep native buttons, make bar transparent
             #[cfg(target_os = "macos")]
             {
+                use tauri::TitleBarStyle;
                 win_builder = win_builder
                     .title_bar_style(TitleBarStyle::Transparent)
                     .fullsize_content_view(true);
@@ -42,8 +43,6 @@ pub fn run() {
             }
 
             let _window = win_builder.build().unwrap();
-
-            commands::game_state::start_game_monitor(app.handle().clone());
 
             // macOS specific background styling
             #[cfg(target_os = "macos")]
@@ -67,8 +66,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::game_state::get_game_running,
-            commands::game_state::stop_monitor,
             commands::launch::launch_modded,
             commands::launch::launch_vanilla
         ])

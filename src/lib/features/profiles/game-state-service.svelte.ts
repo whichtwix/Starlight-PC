@@ -1,46 +1,28 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { invoke } from '@tauri-apps/api/core';
 
 class GameStateService {
 	#running = $state(false);
-	#listeners: UnlistenFn[] = [];
+	#unlisten: UnlistenFn | null = null;
 
-	async init() {
-		if (this.#listeners.length > 0) return;
-
-		const unlisten = await listen<{ running: boolean }>('game-state-changed', (event) => {
-			this.#running = event.payload.running;
-		});
-
-		this.#listeners.push(unlisten);
-
-		const initialRunning = await invoke<boolean>('get_game_running');
-		this.#running = initialRunning;
-	}
-
-	async destroy() {
-		for (const unlisten of this.#listeners) {
-			unlisten();
-		}
-		this.#listeners = [];
-	}
-
-	get running() {
+	get running(): boolean {
+		this.#ensureInitialized();
 		return this.#running;
 	}
-}
 
-let gameStateService: GameStateService | null = null;
+	async #ensureInitialized() {
+		if (this.#unlisten) return;
 
-export function getGameState() {
-	if (!gameStateService) {
-		gameStateService = new GameStateService();
+		this.#unlisten = await listen<{ running: boolean }>('game-state-changed', (event) => {
+			this.#running = event.payload.running;
+		});
 	}
-	return gameStateService;
+
+	destroy() {
+		if (this.#unlisten) {
+			this.#unlisten();
+			this.#unlisten = null;
+		}
+	}
 }
 
-export async function initGameState() {
-	const service = getGameState();
-	await service.init();
-	return service;
-}
+export const gameState = new GameStateService();

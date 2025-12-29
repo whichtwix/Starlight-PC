@@ -15,6 +15,7 @@
 	import { launchService } from '$lib/features/profiles/launch-service';
 	import type { Profile } from '$lib/features/profiles/schema';
 	import { showToastError } from '$lib/utils/toast';
+	import { gameState } from '$lib/features/profiles/game-state-service.svelte';
 	import CreateProfileDialog from '$lib/features/profiles/components/CreateProfileDialog.svelte';
 
 	let { children } = $props();
@@ -51,11 +52,9 @@
 
 	const activeProfileQuery = createQuery(() => profileQueries.active());
 	const activeProfile = $derived((activeProfileQuery.data ?? null) as Profile | null);
-	const gameRunningQuery = createQuery(() => profileQueries.gameRunning());
-	const gameRunning = $derived(gameRunningQuery.data ?? false);
 
 	async function handleLaunchLastUsed() {
-		if (gameRunning) {
+		if (gameState.running) {
 			showToastError(new Error('Among Us is already running'));
 			return;
 		}
@@ -112,13 +111,13 @@
 					data-tauri-drag-region-exclude
 					size="sm"
 					variant="ghost"
-					disabled={gameRunning}
+					disabled={gameState.running}
 					onclick={handleLaunchLastUsed}
 					class="gap-2"
 				>
 					<Play class="h-4 w-4 fill-current" />
 					<span class="hidden sm:inline">Launch {activeProfile.name}</span>
-					{#if gameRunning}
+					{#if gameState.running}
 						<div class="relative h-2 w-2">
 							<span class="absolute inset-0 animate-ping rounded-full bg-green-500 opacity-75"
 							></span>
