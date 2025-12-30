@@ -21,7 +21,7 @@
 	<div
 		class="sticky top-0 z-10 flex items-center justify-between border-b bg-muted/80 p-4 backdrop-blur-md"
 	>
-		<div class="flex gap-2 justify-end w-full">
+		<div class="flex w-full justify-end gap-2">
 			<Button variant="ghost" size="icon" onclick={() => sidebar.toggleMaximize()}>
 				{#if sidebar.isMaximized}
 					<Minimize class="h-4 w-4" />
