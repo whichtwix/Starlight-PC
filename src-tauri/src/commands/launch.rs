@@ -13,12 +13,11 @@ pub struct GameStatePayload {
 
 #[cfg(windows)]
 fn set_dll_directory(path: &str) -> Result<(), String> {
-    use std::ffi::CString;
-    use windows::Win32::System::LibraryLoader::SetDllDirectoryA;
-    use windows::core::PCSTR;
+    use windows::Win32::System::LibraryLoader::SetDllDirectoryW;
+    use windows::core::PCWSTR;
 
-    let cstr = CString::new(path).map_err(|e| e.to_string())?;
-    unsafe { SetDllDirectoryA(PCSTR(cstr.as_ptr().cast())) }
+    let wide: Vec<u16> = path.encode_utf16().chain(std::iter::once(0)).collect();
+    unsafe { SetDllDirectoryW(PCWSTR(wide.as_ptr())) }
         .map_err(|e| format!("SetDllDirectory failed: {e}"))
 }
 
@@ -68,7 +67,7 @@ fn launch<R: Runtime>(app: AppHandle<R>, mut cmd: Command) -> Result<(), String>
 pub fn launch_modded<R: Runtime>(
     app: AppHandle<R>,
     game_exe: String,
-    profile_path: String,
+    _profile_path: String,
     bepinex_dll: String,
     dotnet_dir: String,
     coreclr_path: String,
@@ -77,7 +76,7 @@ pub fn launch_modded<R: Runtime>(
     let game_dir = game_dir.parent().ok_or("Invalid game path")?;
 
     #[cfg(windows)]
-    set_dll_directory(&profile_path)?;
+    set_dll_directory(&_profile_path)?;
 
     let mut cmd = Command::new(&game_exe);
     cmd.current_dir(game_dir)
