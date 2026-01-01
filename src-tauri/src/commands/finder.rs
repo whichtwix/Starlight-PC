@@ -1,4 +1,4 @@
-use crate::utils::finder::{get_among_us_paths, detect_platform};
+use crate::utils::finder::{detect_platform, get_among_us_paths};
 
 #[tauri::command]
 pub fn detect_among_us() -> Result<String, String> {

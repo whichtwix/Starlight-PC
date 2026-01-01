@@ -1,10 +1,9 @@
-use crate::commands::epic_commands::EpicState;
-use crate::utils::epic_api::EpicApi;
+use crate::utils::epic_api::{self, EpicApi};
 use std::path::PathBuf;
 use std::process::{Child, Command};
 use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
-use tauri::{AppHandle, Emitter, Runtime, State};
+use tauri::{AppHandle, Emitter, Runtime};
 
 static GAME_PROCESS: LazyLock<Mutex<Option<Child>>> = LazyLock::new(|| Mutex::new(None));
 
@@ -73,7 +72,6 @@ pub async fn launch_modded<R: Runtime>(
     bepinex_dll: String,
     dotnet_dir: String,
     coreclr_path: String,
-    state: State<'_, EpicState>,
 ) -> Result<(), String> {
     let game_dir = PathBuf::from(&game_exe);
     let game_dir = game_dir.parent().ok_or("Invalid game path")?;
@@ -88,9 +86,7 @@ pub async fn launch_modded<R: Runtime>(
         .args(["--doorstop-clr-corlib-dir", &dotnet_dir])
         .args(["--doorstop-clr-runtime-coreclr-path", &coreclr_path]);
 
-    let session = state.session.lock().unwrap().clone();
-
-    if let Some(session) = session {
+    if let Some(session) = epic_api::load_session().await {
         let api = EpicApi::new();
         let launch_token = api.get_game_token(&session).await?;
         cmd.arg(format!("-AUTH_PASSWORD={}", launch_token));

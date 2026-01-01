@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tokio::fs;
 
-// Match the C# values exactly
 const OAUTH_HOST: &str = "account-public-service-prod03.ol.epicgames.com";
 const LAUNCHER_CLIENT_ID: &str = "34a02cf8f4414e29b15921876da36f9a";
 const LAUNCHER_CLIENT_SECRET: &str = "daafbccc737745039dffe53d94fc76cf";
@@ -26,22 +25,8 @@ struct OAuthResponse {
 }
 
 #[derive(Debug, Deserialize)]
-struct VerifyResponse {
-    access_token: Option<String>,
-    account_id: String,
-}
-
-#[derive(Debug, Deserialize)]
 struct GameTokenResponse {
     code: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ErrorResponse {
-    #[serde(rename = "errorCode")]
-    error_code: Option<String>,
-    #[serde(rename = "errorMessage")]
-    error_message: Option<String>,
 }
 
 pub struct EpicApi {
@@ -65,7 +50,6 @@ impl EpicApi {
     }
 
     pub fn get_auth_url() -> String {
-        // Must URL-encode the redirect URL, matching C# HttpUtility.UrlEncode
         let redirect_url = format!(
             "https://www.epicgames.com/id/api/redirect?clientId={}&responseType=code",
             LAUNCHER_CLIENT_ID
@@ -78,54 +62,21 @@ impl EpicApi {
     }
 
     pub async fn login_with_auth_code(&self, code: &str) -> Result<EpicSession, String> {
-        let params = [
+        self.oauth_request(&[
             ("grant_type", "authorization_code"),
             ("code", code),
             ("token_type", "eg1"),
-        ];
-        self.oauth_request(&params).await
+        ])
+        .await
     }
 
     pub async fn refresh_session(&self, refresh_token: &str) -> Result<EpicSession, String> {
-        let params = [
+        self.oauth_request(&[
             ("grant_type", "refresh_token"),
             ("refresh_token", refresh_token),
             ("token_type", "eg1"),
-        ];
-        self.oauth_request(&params).await
-    }
-
-    pub async fn resume_session(&self, access_token: &str) -> Result<EpicSession, String> {
-        let url = format!("https://{}/account/api/oauth/verify", OAUTH_HOST);
-
-        let response = self
-            .client
-            .get(&url)
-            .header("Authorization", format!("Bearer {}", access_token))
-            .send()
-            .await
-            .map_err(|e| format!("Request failed: {e}"))?;
-
-        let body = response.text().await.unwrap_or_default();
-
-        // Check for error in response
-        if let Ok(err) = serde_json::from_str::<ErrorResponse>(&body) {
-            if err.error_code.is_some() || err.error_message.is_some() {
-                return Err(format!(
-                    "Session verify failed: {}",
-                    err.error_code.unwrap_or_else(|| "Unknown".to_string())
-                ));
-            }
-        }
-
-        let verify: VerifyResponse =
-            serde_json::from_str(&body).map_err(|e| format!("Failed to parse response: {e}"))?;
-
-        Ok(EpicSession {
-            access_token: access_token.to_string(),
-            refresh_token: String::new(), // Verify doesn't return refresh token
-            account_id: verify.account_id,
-        })
+        ])
+        .await
     }
 
     async fn oauth_request(&self, params: &[(&str, &str)]) -> Result<EpicSession, String> {
@@ -140,17 +91,10 @@ impl EpicApi {
             .await
             .map_err(|e| format!("Request failed: {e}"))?;
 
-        let body = response.text().await.unwrap_or_default();
-
-        // Check for error response
-        if let Ok(err) = serde_json::from_str::<ErrorResponse>(&body) {
-            if let Some(code) = err.error_code {
-                return Err(format!(
-                    "Login failed with errorCode: {}. Response: {}",
-                    code, body
-                ));
-            }
-        }
+        let body = response
+            .text()
+            .await
+            .map_err(|e| format!("Failed to read response: {e}"))?;
 
         let oauth: OAuthResponse =
             serde_json::from_str(&body).map_err(|e| format!("Failed to parse response: {e}"))?;
@@ -175,7 +119,10 @@ impl EpicApi {
 
         if !response.status().is_success() {
             let status = response.status();
-            let body = response.text().await.unwrap_or_default();
+            let body = response
+                .text()
+                .await
+                .map_err(|e| format!("Failed to read response: {e}"))?;
             return Err(format!("Failed to get game token ({}): {}", status, body));
         }
 
@@ -188,21 +135,21 @@ impl EpicApi {
     }
 }
 
-// Token storage
-fn get_token_path() -> Result<PathBuf, String> {
-    let data_dir = dirs::data_local_dir().ok_or("Could not find local data directory")?;
-    Ok(data_dir.join("Starlight").join("epic_tokens.json"))
+fn get_token_path() -> PathBuf {
+    dirs::data_local_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("Starlight")
+        .join("epic_tokens.json")
 }
 
 pub async fn save_session(session: &EpicSession) -> Result<(), String> {
-    let path = get_token_path()?;
+    let path = get_token_path();
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)
             .await
             .map_err(|e| format!("Failed to create directory: {e}"))?;
     }
-    let json =
-        serde_json::to_string_pretty(session).map_err(|e| format!("Failed to serialize: {e}"))?;
+    let json = serde_json::to_string(session).map_err(|e| format!("Failed to serialize: {e}"))?;
     fs::write(&path, json)
         .await
         .map_err(|e| format!("Failed to save: {e}"))?;
@@ -210,17 +157,15 @@ pub async fn save_session(session: &EpicSession) -> Result<(), String> {
 }
 
 pub async fn load_session() -> Option<EpicSession> {
-    let path = get_token_path().ok()?;
+    let path = get_token_path();
     let content = fs::read_to_string(&path).await.ok()?;
     serde_json::from_str(&content).ok()
 }
 
 pub async fn clear_session() -> Result<(), String> {
-    let path = get_token_path()?;
-    if path.exists() {
-        fs::remove_file(&path)
-            .await
-            .map_err(|e| format!("Failed to delete: {e}"))?;
-    }
+    let path = get_token_path();
+    fs::remove_file(&path)
+        .await
+        .map_err(|e| format!("Failed to delete: {e}"))?;
     Ok(())
 }

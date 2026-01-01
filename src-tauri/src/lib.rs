@@ -1,16 +1,11 @@
 mod commands;
 mod utils;
-use crate::commands::epic_commands::EpicState;
-use std::sync::Mutex;
 use tauri::{WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_updater::UpdaterExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .manage(EpicState {
-            session: Mutex::new(None),
-        })
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
