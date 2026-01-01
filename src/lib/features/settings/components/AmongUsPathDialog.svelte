@@ -35,11 +35,15 @@
 
 	async function handleAutoSetBepinex() {
 		const crashHandlerPath = `${selectedPath}/UnityCrashHandler64.exe`;
+		const { settingsService } = await import('../settings-service');
+		const url = (await settingsService.getSettings()).bepinex_url;
 
 		if (await exists(crashHandlerPath)) {
-			const { settingsService } = await import('../settings-service');
-			const url = (await settingsService.getSettings()).bepinex_url;
 			const updatedurl = url.replace('x86', 'x64');
+			await settingsService.updateSettings({ bepinex_url: updatedurl });
+		}
+		else {
+			const updatedurl = url.replace('x64', 'x86');
 			await settingsService.updateSettings({ bepinex_url: updatedurl });
 		}
 	}
