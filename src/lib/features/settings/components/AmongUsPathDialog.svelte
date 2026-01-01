@@ -33,6 +33,20 @@
 		}
 	}
 
+	async function handleAutoSetBepinex() {
+		const crashHandlerPath = `${selectedPath}/UnityCrashHandler64.exe`;
+		const { settingsService } = await import('../settings-service');
+		const url = (await settingsService.getSettings()).bepinex_url;
+
+		if (await exists(crashHandlerPath)) {
+			const updatedurl = url.replace('x86', 'x64');
+			await settingsService.updateSettings({ bepinex_url: updatedurl });
+		} else {
+			const updatedurl = url.replace('x64', 'x86');
+			await settingsService.updateSettings({ bepinex_url: updatedurl });
+		}
+	}
+
 	async function handleBrowse() {
 		try {
 			const selected = await openDialog({
@@ -63,6 +77,7 @@
 
 			const { settingsService } = await import('../settings-service');
 			await settingsService.updateSettings({ among_us_path: selectedPath });
+			await handleAutoSetBepinex();
 			open = false;
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to save path';
