@@ -24,7 +24,6 @@
 	let isSaving = $state(false);
 	let isDetecting = $state(false);
 	let epicLoginOpen = $state(false);
-	let hasInitialized = $state(false);
 
 	async function refreshEpicAuth() {
 		isLoggedIn = await epicService.isLoggedIn();
@@ -37,13 +36,12 @@
 	let localGamePlatform = $state<GamePlatform>('steam');
 
 	$effect(() => {
-		if (settings && !hasInitialized) {
+		if (settings) {
 			localAmongUsPath = settings.among_us_path ?? '';
 			localBepInExUrl = settings.bepinex_url ?? '';
 			localBepInExVersion = settings.bepinex_version ?? '';
 			localCloseOnLaunch = settings.close_on_launch ?? false;
 			localGamePlatform = settings.game_platform ?? 'steam';
-			hasInitialized = true;
 			refreshEpicAuth();
 		}
 	});
