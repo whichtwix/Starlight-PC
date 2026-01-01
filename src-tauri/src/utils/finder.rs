@@ -5,14 +5,14 @@ use std::path::{Path, PathBuf};
 use winreg::{RegKey, enums::*};
 
 const AMONG_US_EXE: &str = "Among Us.exe";
-const EPIC_FOLDER: &str = ".egstore";
+const EPIC_FOLDER: &str = "Among Us_Data/StreamingAssets/aa/EGS";
 
 /// Checks if the directory exists and contains the Among Us executable.
 fn verify_among_us_directory(path: &Path) -> bool {
     path.is_dir() && path.join(AMONG_US_EXE).is_file()
 }
 
-/// Checks if the directory contains Epic Games indicator (.egs folder).
+/// Checks if the directory contains Epic Games indicator (Among Us_Data\StreamingAssets\aa\EGS folder).
 fn is_epic_installation(path: &Path) -> bool {
     path.join(EPIC_FOLDER).is_dir()
 }
