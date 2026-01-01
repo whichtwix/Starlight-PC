@@ -96,6 +96,14 @@ pub async fn launch_modded<R: Runtime>(
 }
 
 #[tauri::command]
-pub fn launch_vanilla<R: Runtime>(app: AppHandle<R>, game_exe: String) -> Result<(), String> {
-    launch(app, Command::new(&game_exe))
+pub async fn launch_vanilla<R: Runtime>(app: AppHandle<R>, game_exe: String) -> Result<(), String> {
+    let mut cmd = Command::new(&game_exe);
+
+    if let Some(session) = epic_api::load_session() {
+        let api = EpicApi::new()?;
+        let launch_token = api.get_game_token(&session).await?;
+        cmd.arg(format!("-AUTH_PASSWORD={}", launch_token));
+    }
+
+    launch(app, cmd)
 }
