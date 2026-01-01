@@ -1,11 +1,16 @@
 mod commands;
 mod utils;
+use crate::commands::epic_commands::EpicState;
+use std::sync::Mutex;
 use tauri::{WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_updater::UpdaterExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(EpicState {
+            session: Mutex::new(None),
+        })
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
@@ -74,7 +79,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::finder::detect_among_us,
             commands::launch::launch_modded,
-            commands::launch::launch_vanilla
+            commands::launch::launch_vanilla,
+            commands::epic_commands::get_epic_auth_url,
+            commands::epic_commands::epic_login_with_code,
+            commands::epic_commands::epic_try_restore_session,
+            commands::epic_commands::epic_logout,
+            commands::epic_commands::epic_is_logged_in,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
