@@ -27,6 +27,7 @@
 		"@tailwindcss/vite": "^4.1.13",
 		"@tauri-apps/cli": "^2.8.4",
 		"@types/node": "^24",
+		"@types/semver": "^7.7.1",
 		"bits-ui": "^2.14.4",
 		"clsx": "^2.1.1",
 		"embla-carousel-svelte": "^8.6.0",
@@ -64,6 +65,7 @@
 		"arktype": "^2.1.29",
 		"dompurify": "^3.3.0",
 		"jszip": "^3.10.1",
-		"marked": "^16.4.1"
+		"marked": "^16.4.1",
+		"semver": "^7.7.3"
 	}
 }
