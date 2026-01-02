@@ -31,7 +31,6 @@
 
 	let localAmongUsPath = $state('');
 	let localBepInExUrl = $state('');
-	let localBepInExVersion = $state('');
 	let localCloseOnLaunch = $state(false);
 	let localGamePlatform = $state<GamePlatform>('steam');
 
@@ -39,7 +38,6 @@
 		if (settings) {
 			localAmongUsPath = settings.among_us_path ?? '';
 			localBepInExUrl = settings.bepinex_url ?? '';
-			localBepInExVersion = settings.bepinex_version ?? '';
 			localCloseOnLaunch = settings.close_on_launch ?? false;
 			localGamePlatform = settings.game_platform ?? 'steam';
 			refreshEpicAuth();
@@ -60,7 +58,6 @@
 			await settingsService.updateSettings({
 				among_us_path: localAmongUsPath,
 				bepinex_url: localBepInExUrl,
-				bepinex_version: localBepInExVersion,
 				close_on_launch: localCloseOnLaunch,
 				game_platform: localGamePlatform
 			});
@@ -224,14 +221,6 @@
 							id="bepinex-url"
 							bind:value={localBepInExUrl}
 							placeholder="https://builds.bepinex.dev/..."
-						/>
-					</div>
-					<div class="space-y-2">
-						<Label for="bepinex-version">BepInEx Version</Label>
-						<Input
-							id="bepinex-version"
-							bind:value={localBepInExVersion}
-							placeholder="6.0.0-be.738"
 						/>
 					</div>
 				</div>
