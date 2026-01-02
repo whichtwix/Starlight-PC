@@ -146,7 +146,9 @@ pub async fn download_and_extract_zip<R: Runtime>(
         if let Some(parent) = cache_file.parent() {
             fs::create_dir_all(parent).ok();
         }
-        fs::copy(&temp_path, cache_file).map_err(|e| eprintln!("Warning: Failed to cache BepInEx: {}", e)).ok();
+        fs::copy(&temp_path, cache_file)
+            .map_err(|e| eprintln!("Warning: Failed to cache BepInEx: {}", e))
+            .ok();
     }
 
     // Extract ZIP
