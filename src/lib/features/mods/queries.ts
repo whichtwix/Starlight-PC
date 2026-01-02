@@ -1,7 +1,7 @@
 import { queryOptions } from '@tanstack/svelte-query';
 import { type } from 'arktype';
 import { apiFetch } from '$lib/api/client';
-import { ModResponse, ModInfoResponse, ModVersion } from './schema';
+import { ModResponse, ModInfoResponse, ModVersion, ModVersionInfo } from './schema';
 
 // Pre-create validators (avoid recreating on every call)
 const ModArrayValidator = type(ModResponse.array());
@@ -67,5 +67,12 @@ export const modQueries = {
 		queryOptions({
 			queryKey: ['mods', 'versions', modId] as const,
 			queryFn: () => apiFetch(`/api/v2/mods/${modId}/versions`, type(ModVersion.array()))
+		}),
+
+	versionInfo: (modId: string, version: string) =>
+		queryOptions({
+			queryKey: ['mods', 'versionInfo', modId, version] as const,
+			queryFn: () => apiFetch(`/api/v2/mods/${modId}/versions/${version}/info`, ModVersionInfo),
+			enabled: !!modId && !!version
 		})
 };
