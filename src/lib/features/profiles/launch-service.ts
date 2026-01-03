@@ -6,6 +6,7 @@ import { settingsService } from '../settings/settings-service';
 import { gameState } from './game-state-service.svelte';
 import { epicService } from '$lib/features/settings/epic-service';
 import type { Profile } from './schema';
+import { showToastError } from '$lib/utils/toast';
 
 class LaunchService {
 	async launchProfile(profile: Profile): Promise<void> {
@@ -39,7 +40,7 @@ class LaunchService {
 		try { 
 			await invoke('save_game_copy', { path: settings.among_us_path });
 		} catch (e) {
-
+			showToastError(e);
 		} finally {
 			await invoke('launch_modded', {
 				gameExe: gameExePath,
@@ -73,7 +74,7 @@ class LaunchService {
 		try { 
 			await invoke('save_game_copy', { path: settings.among_us_path });
 		} catch (e) {
-
+			showToastError(e);
 		} finally {
 			await invoke('launch_vanilla', { gameExe: gameExePath });
 			gameState.setRunningProfile(null);
