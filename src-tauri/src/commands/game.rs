@@ -6,7 +6,6 @@ use tauri::{AppHandle, Manager, Runtime};
 #[tauri::command]
 pub async fn save_game_copy<R: Runtime>(app: AppHandle<R>, path: String) -> Result<(), String> {
     let game_path = Path::new(&path);
-    
 
     let version = extract_game_version(game_path)?;
     
