@@ -37,7 +37,7 @@ class LaunchService {
 			await epicService.ensureLoggedIn();
 		}
 
-		try { 
+		try {
 			await invoke('save_game_copy', { path: settings.among_us_path });
 		} catch (e) {
 			showToastError(e);
@@ -71,7 +71,7 @@ class LaunchService {
 			throw new Error('Among Us.exe not found at configured path');
 		}
 
-		try { 
+		try {
 			await invoke('save_game_copy', { path: settings.among_us_path });
 		} catch (e) {
 			showToastError(e);
