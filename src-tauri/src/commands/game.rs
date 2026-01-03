@@ -18,12 +18,12 @@ pub async fn save_game_copy<R: Runtime>(app: AppHandle<R>, path: String) -> Resu
         return Ok(());
     }
     
-    copy_dir(game_path, &target_dir).map_err(|e| e.to_string())?;
+    copy_dir(game_path, &target_dir).await.map_err(|e| e.to_string())?;
     
     Ok(())
 }
 
-fn copy_dir(src: &Path, dst: &Path) -> std::io::Result<()> {
+async fn copy_dir(src: &Path, dst: &Path) -> std::io::Result<()> {
     if !dst.exists() {
         fs::create_dir_all(dst)?;
     }
@@ -40,7 +40,7 @@ fn copy_dir(src: &Path, dst: &Path) -> std::io::Result<()> {
         let dst_path = dst.join(entry.file_name());
         
         if ty.is_dir() {
-            copy_dir(&src_path, &dst_path)?;
+            Box::pin(copy_dir(&src_path, &dst_path)).await?;
         } else {
             fs::copy(&src_path, &dst_path)?;
         }
