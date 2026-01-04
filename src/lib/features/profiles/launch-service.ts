@@ -6,7 +6,6 @@ import { settingsService } from '../settings/settings-service';
 import { gameState } from './game-state-service.svelte';
 import { epicService } from '$lib/features/settings/epic-service';
 import type { Profile } from './schema';
-import { showToastError } from '$lib/utils/toast';
 
 class LaunchService {
 	async launchProfile(profile: Profile): Promise<void> {
@@ -37,26 +36,20 @@ class LaunchService {
 			await epicService.ensureLoggedIn();
 		}
 
-		try {
-			await invoke('save_game_copy', { path: settings.among_us_path });
-		} catch (e) {
-			showToastError(e);
-		} finally {
-			await invoke('launch_modded', {
-				gameExe: gameExePath,
-				profilePath: profile.path,
-				bepinexDll: bepinexDll,
-				dotnetDir: dotnetDir,
-				coreclrPath: coreClr
-			});
+		await invoke('launch_modded', {
+			gameExe: gameExePath,
+			profilePath: profile.path,
+			bepinexDll: bepinexDll,
+			dotnetDir: dotnetDir,
+			coreclrPath: coreClr
+		});
 
-			await profileService.updateLastLaunched(profile.id);
-			gameState.setRunningProfile(profile.id);
+		await profileService.updateLastLaunched(profile.id);
+		gameState.setRunningProfile(profile.id);
 
-			if (settings.close_on_launch) {
-				const { getCurrentWindow } = await import('@tauri-apps/api/window');
-				getCurrentWindow().close();
-			}
+		if (settings.close_on_launch) {
+			const { getCurrentWindow } = await import('@tauri-apps/api/window');
+			getCurrentWindow().close();
 		}
 	}
 
@@ -71,14 +64,8 @@ class LaunchService {
 			throw new Error('Among Us.exe not found at configured path');
 		}
 
-		try {
-			await invoke('save_game_copy', { path: settings.among_us_path });
-		} catch (e) {
-			showToastError(e);
-		} finally {
-			await invoke('launch_vanilla', { gameExe: gameExePath });
-			gameState.setRunningProfile(null);
-		}
+		await invoke('launch_vanilla', { gameExe: gameExePath });
+		gameState.setRunningProfile(null);
 	}
 }
 
