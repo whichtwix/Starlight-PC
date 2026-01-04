@@ -29,6 +29,7 @@
 	let isCacheDownloading = $state(false);
 	let cacheDownloadProgress = $state(0);
 	let isCacheExists = $state(false);
+	let isCopying = $state(false);
 
 	async function refreshEpicAuth() {
 		isLoggedIn = await epicService.isLoggedIn();
@@ -80,13 +81,16 @@
 				cache_bepinex: localCacheBepInEx
 			});
 			await handleAutoSetBepinex();
+			isCopying = true;
 			await invoke('save_game_copy', { path: localAmongUsPath });
+			isCopying = false;
 			queryClient.invalidateQueries({ queryKey: ['settings'] });
 			showToastSuccess('Settings saved successfully');
 		} catch (e) {
 			showToastError(e);
 		} finally {
 			isSaving = false;
+			isCopying = false;
 		}
 	}
 
@@ -385,7 +389,7 @@
 			<div class="flex justify-end gap-2">
 				<Button onclick={handleSave} disabled={isSaving}>
 					{#if isSaving}
-						Saving...
+						{isCopying ? 'Backing up game files...' : 'Saving...'}
 					{:else}
 						<Save class="mr-2 h-4 w-4" />
 						Save Settings
